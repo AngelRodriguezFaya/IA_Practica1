@@ -5,7 +5,7 @@ using namespace std;
 Action ComportamientoJugador::think(Sensores sensores)
 {
 
-	Action accion = actIDLE;
+	Action accion = actRUN;
 
 	// Mostrar el valor de los sensores
 	cout << "Posicion: fila " << sensores.posF << " columna " << sensores.posC;
