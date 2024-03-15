@@ -2,13 +2,16 @@
 #include <iostream>
 using namespace std;
 
+void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
+							vector< vector< unsigned char> > &matriz);
+
 Action ComportamientoJugador::think(Sensores sensores)
-{
+{	
 
 	Action accion = actRUN;
 	int a;
 
-	// Actualización de las variables de esatdo
+	// Actualización de las variables de estado
 	switch (last_action)
 	{
 	case actWALK:		// Actualización en caso de avanzar
@@ -36,14 +39,26 @@ Action ComportamientoJugador::think(Sensores sensores)
 	
 	case actTURN_L:	   // Actualización en caso de girar 90º a la izquierda
 		a = current_state.brujula;
-		a = (a - 6) % 8;	// Es equivalente a (a-2+8) % 8.
+		a = (a - 6) % 8;	// Es equivalente a (a-2+8) % 8, pero % en C++ no trabaja con numeros negativos.
 		current_state.brujula = static_cast<Orientacion>(a);
 		break;
 	}
 
+	if(sensores.terreno[0] == 'G' and !bien_situado){
+		current_state.fil = sensores.posF;
+		current_state.col = sensores.posC;
+		current_state.brujula = sensores.sentido;
+		bien_situado = true;
+	}
+
+	if(bien_situado){
+		mapaResultado[current_state.fil][current_state.col] = sensores.terreno[0];
+		//PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
+	}
+
 	// Decidir la nueva accion
-	if( (sensores.terreno[2] == 'T' or sensores.terreno[2] == 'S') // Si puedo avanzar a la siguiente casilla
-		and sensores.agentes[2] == '_' ){
+	if( (sensores.terreno[2] == 'T' or sensores.terreno[2] == 'S' // Si puedo avanzar a la siguiente casilla
+		or sensores.terreno[2] == 'G') and sensores.agentes[2] == '_'){
 			accion = actWALK;
 	} else if(!girar_derecha){	
 		accion = actTURN_L;
@@ -89,3 +104,10 @@ int ComportamientoJugador::interact(Action accion, int valor)
 {
 	return false;
 }
+
+/* void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
+						vector< vector< unsigned char> > &matriz){
+	// HAY QUE EXTENDER ESTA VERSION. Inicialmente solo pinta la componente 0 en matriz
+	// hay que cambiarla para poner todas las componentes del terreno según la orientacion del agente
+	matriz[st.fil][st.col] = terreno[0];
+} */

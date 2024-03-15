@@ -22,6 +22,7 @@ class ComportamientoJugador : public Comportamiento{
       current_state.brujula = norte;
       last_action = actIDLE;
       girar_derecha = false;
+      bien_situado = false;
      }
      
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
@@ -34,6 +35,6 @@ class ComportamientoJugador : public Comportamiento{
   // Declarar aquí las variables de estado
   state current_state; Orientacion brujula;
   Action last_action;
-  bool girar_derecha;
+  bool girar_derecha, bien_situado;
 };
 #endif
