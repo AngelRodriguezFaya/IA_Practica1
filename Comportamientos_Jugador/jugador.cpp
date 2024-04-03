@@ -52,8 +52,11 @@ Action ComportamientoJugador::think(Sensores sensores)
 	}
 
 	if(bien_situado){
-		mapaResultado[current_state.fil][current_state.col] = sensores.terreno[0];
+		//mapaResultado[current_state.fil][current_state.col] = sensores.terreno[0];
 		//PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
+		mapaResultado[current_state.fil][current_state.col] = sensores.terreno[0];
+		mapaResultado[current_state.fil+1][current_state.col]  = sensores.terreno[2];
+		mapaResultado[current_state.fil+2][current_state.col]  = sensores.terreno[6];
 	}
 
 	// Decidir la nueva accion
@@ -105,9 +108,11 @@ int ComportamientoJugador::interact(Action accion, int valor)
 	return false;
 }
 
-/* void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
+void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
 						vector< vector< unsigned char> > &matriz){
 	// HAY QUE EXTENDER ESTA VERSION. Inicialmente solo pinta la componente 0 en matriz
 	// hay que cambiarla para poner todas las componentes del terreno según la orientacion del agente
 	matriz[st.fil][st.col] = terreno[0];
-} */
+	matriz[st.fil+1][st.col] = terreno[2];
+	matriz[st.fil+2][st.col] = terreno[6];
+}
