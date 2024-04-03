@@ -44,6 +44,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 		break;
 	}
 
+	// Si está en la casilla de posicionamiento, se actualizan el estado (la posición y la orientación).
 	if(sensores.terreno[0] == 'G' and !bien_situado){
 		current_state.fil = sensores.posF;
 		current_state.col = sensores.posC;
@@ -51,12 +52,8 @@ Action ComportamientoJugador::think(Sensores sensores)
 		bien_situado = true;
 	}
 
-	if(bien_situado){
-		//mapaResultado[current_state.fil][current_state.col] = sensores.terreno[0];
-		//PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
-		mapaResultado[current_state.fil][current_state.col] = sensores.terreno[0];
-		mapaResultado[current_state.fil+1][current_state.col]  = sensores.terreno[2];
-		mapaResultado[current_state.fil+2][current_state.col]  = sensores.terreno[6];
+	if(bien_situado){ 
+		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
 	}
 
 	// Decidir la nueva accion
@@ -71,7 +68,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 		girar_derecha = (rand()%2 == 0);
 	}
 
-/* 	// Mostrar el valor de los sensores
+ 	// Mostrar el valor de los sensores
 	cout << "Posicion: fila " << sensores.posF << " columna " << sensores.posC;
 	switch (sensores.sentido)
 	{
@@ -94,7 +91,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 	cout << "\nColision: " << sensores.colision;
 	cout << "  Reset: " << sensores.reset;
-	cout << "  Vida: " << sensores.vida << endl<< endl; */
+	cout << "  Vida: " << sensores.vida << endl<< endl; 
 
 	// Recordar la ultima accion
 	last_action = accion;
@@ -110,9 +107,165 @@ int ComportamientoJugador::interact(Action accion, int valor)
 
 void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
 						vector< vector< unsigned char> > &matriz){
-	// HAY QUE EXTENDER ESTA VERSION. Inicialmente solo pinta la componente 0 en matriz
-	// hay que cambiarla para poner todas las componentes del terreno según la orientacion del agente
-	matriz[st.fil][st.col] = terreno[0];
-	matriz[st.fil+1][st.col] = terreno[2];
-	matriz[st.fil+2][st.col] = terreno[6];
+	
+	// Según la orinetación del agente, se coloca el terreno en la matriz.
+	switch (st.brujula)
+	{
+	case norte:
+		cout << "Pinta terreno al norte\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil - 1][st.col - 1] = terreno[1];
+		matriz[st.fil - 1][st.col] = terreno[2];
+		matriz[st.fil - 1][st.col + 1] = terreno[3];
+		matriz[st.fil - 2][st.col - 2] = terreno[4];
+		matriz[st.fil - 2][st.col - 1] = terreno[5];
+		matriz[st.fil - 2][st.col] = terreno[6];
+		matriz[st.fil - 2][st.col + 1] = terreno[7];
+		matriz[st.fil - 2][st.col + 2] = terreno[8];
+		matriz[st.fil - 3][st.col - 3] = terreno[9];
+		matriz[st.fil - 3][st.col - 2] = terreno[10];
+		matriz[st.fil - 3][st.col - 1] = terreno[11];
+		matriz[st.fil - 3][st.col] = terreno[12];
+		matriz[st.fil - 3][st.col + 1] = terreno[13];
+		matriz[st.fil - 3][st.col + 2] = terreno[14];
+		matriz[st.fil - 3][st.col + 3] = terreno[15];
+		break;
+	case noreste:
+		cout << "Pinta terreno al noreste\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil - 1][st.col] = terreno[1];
+		matriz[st.fil - 1][st.col + 1] = terreno[2];
+		matriz[st.fil][st.col + 1] = terreno[3];
+		matriz[st.fil - 2][st.col] = terreno[4];
+		matriz[st.fil - 2][st.col + 1] = terreno[5];
+		matriz[st.fil - 2][st.col + 2] = terreno[6];
+		matriz[st.fil - 1][st.col + 2] = terreno[7];
+		matriz[st.fil][st.col + 2] = terreno[8];
+		matriz[st.fil - 3][st.col] = terreno[9];
+		matriz[st.fil - 3][st.col + 1] = terreno[10];
+		matriz[st.fil - 3][st.col + 2] = terreno[11];
+		matriz[st.fil - 3][st.col + 3] = terreno[12];
+		matriz[st.fil - 2][st.col + 3] = terreno[13];
+		matriz[st.fil - 1][st.col + 3] = terreno[14];
+		matriz[st.fil][st.col + 3] = terreno[15];
+		break;
+	case este:
+		cout << "Pinta terreno al este\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil - 1][st.col + 1] = terreno[1];
+		matriz[st.fil][st.col + 1] = terreno[2];
+		matriz[st.fil + 1][st.col + 1] = terreno[3];
+		matriz[st.fil - 2][st.col + 2] = terreno[4];
+		matriz[st.fil - 1][st.col + 2] = terreno[5];
+		matriz[st.fil][st.col + 2] = terreno[6];
+		matriz[st.fil + 1][st.col + 2] = terreno[7];
+		matriz[st.fil + 2][st.col + 2] = terreno[8];
+		matriz[st.fil - 3][st.col + 3] = terreno[9];
+		matriz[st.fil - 2][st.col + 3] = terreno[10];
+		matriz[st.fil - 1][st.col + 3] = terreno[11];
+		matriz[st.fil][st.col + 3] = terreno[12];
+		matriz[st.fil + 1][st.col + 3] = terreno[13];
+		matriz[st.fil + 2][st.col + 3] = terreno[14];
+		matriz[st.fil + 3][st.col + 3] = terreno[15];
+		break;
+	case sureste:
+		cout << "Pinta terreno al sureste\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil][st.col + 1] = terreno[1];
+		matriz[st.fil + 1][st.col + 1] = terreno[2];
+		matriz[st.fil + 1][st.col] = terreno[3];
+		matriz[st.fil][st.col + 2] = terreno[4];
+		matriz[st.fil + 1][st.col + 2] = terreno[5];
+		matriz[st.fil + 2][st.col + 2] = terreno[6];
+		matriz[st.fil + 2][st.col + 1] = terreno[7];
+		matriz[st.fil + 2][st.col] = terreno[8];
+		matriz[st.fil][st.col + 3] = terreno[9];
+		matriz[st.fil + 1][st.col + 3] = terreno[10];
+		matriz[st.fil + 2][st.col + 3] = terreno[11];
+		matriz[st.fil + 3][st.col + 3] = terreno[12];
+		matriz[st.fil + 3][st.col + 2] = terreno[13];
+		matriz[st.fil + 3][st.col + 1] = terreno[14];
+		matriz[st.fil + 3][st.col] = terreno[15];
+		break;
+	case sur:
+		cout << "Pinta terreno al sur\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil + 1][st.col + 1] = terreno[1];
+		matriz[st.fil + 1][st.col] = terreno[2];
+		matriz[st.fil + 1][st.col - 1] = terreno[3];
+		matriz[st.fil + 2][st.col + 2] = terreno[4];
+		matriz[st.fil + 2][st.col + 1] = terreno[5];
+		matriz[st.fil + 2][st.col] = terreno[6];
+		matriz[st.fil + 2][st.col - 1] = terreno[7];
+		matriz[st.fil + 2][st.col - 2] = terreno[8];
+		matriz[st.fil + 3][st.col + 3] = terreno[9];
+		matriz[st.fil + 3][st.col + 2] = terreno[10];
+		matriz[st.fil + 3][st.col + 1] = terreno[11];
+		matriz[st.fil + 3][st.col] = terreno[12];
+		matriz[st.fil + 3][st.col - 1] = terreno[13];
+		matriz[st.fil + 3][st.col - 2] = terreno[14];
+		matriz[st.fil + 3][st.col - 3] = terreno[15];
+		break;
+	case suroeste:
+		cout << "Pinta terreno al suroeste\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil + 1][st.col] = terreno[1];
+		matriz[st.fil + 1][st.col - 1] = terreno[2];
+		matriz[st.fil][st.col - 1] = terreno[3];
+		matriz[st.fil + 2][st.col] = terreno[4];
+		matriz[st.fil + 2][st.col - 1] = terreno[5];
+		matriz[st.fil + 2][st.col - 2] = terreno[6];
+		matriz[st.fil + 1][st.col - 2] = terreno[7];
+		matriz[st.fil][st.col - 2] = terreno[8];
+		matriz[st.fil + 3][st.col] = terreno[9];
+		matriz[st.fil + 3][st.col - 1] = terreno[10];
+		matriz[st.fil + 3][st.col - 2] = terreno[11];
+		matriz[st.fil + 3][st.col - 3] = terreno[12];
+		matriz[st.fil + 2][st.col - 3] = terreno[13];
+		matriz[st.fil + 1][st.col - 3] = terreno[14];
+		matriz[st.fil][st.col - 3] = terreno[15];
+		break;
+	
+	case oeste:
+		cout << "Pinta terreno al oeste\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil + 1][st.col - 1] = terreno[1];
+		matriz[st.fil][st.col - 1] = terreno[2];
+		matriz[st.fil - 1][st.col - 1] = terreno[3];
+		matriz[st.fil + 2][st.col - 2] = terreno[4];
+		matriz[st.fil + 1][st.col - 2] = terreno[5];
+		matriz[st.fil][st.col - 2] = terreno[6];
+		matriz[st.fil - 1][st.col - 2] = terreno[7];
+		matriz[st.fil - 2][st.col - 2] = terreno[8];
+		matriz[st.fil + 3][st.col - 3] = terreno[9];
+		matriz[st.fil + 2][st.col - 3] = terreno[10];
+		matriz[st.fil + 1][st.col - 3] = terreno[11];
+		matriz[st.fil][st.col - 3] = terreno[12];
+		matriz[st.fil - 1][st.col - 3] = terreno[13];
+		matriz[st.fil - 2][st.col - 3] = terreno[14];
+		matriz[st.fil - 3][st.col - 3] = terreno[15];
+		break;
+	
+	case noroeste:
+		cout << "Pinta terreno al noroeste\n";
+		matriz[st.fil][st.col] = terreno[0];
+		matriz[st.fil][st.col - 1] = terreno[1];
+		matriz[st.fil - 1][st.col - 1] = terreno[2];
+		matriz[st.fil - 1][st.col] = terreno[3];
+		matriz[st.fil][st.col - 2] = terreno[4];
+		matriz[st.fil - 1][st.col - 2] = terreno[5];
+		matriz[st.fil - 2][st.col - 2] = terreno[6];
+		matriz[st.fil - 2][st.col - 1] = terreno[7];
+		matriz[st.fil - 2][st.col] = terreno[8];
+		matriz[st.fil][st.col - 3] = terreno[9];
+		matriz[st.fil - 1][st.col - 3] = terreno[10];
+		matriz[st.fil - 2][st.col - 3] = terreno[11];
+		matriz[st.fil - 3][st.col - 3] = terreno[12];
+		matriz[st.fil - 3][st.col - 2] = terreno[13];
+		matriz[st.fil - 3][st.col - 1] = terreno[14];
+		matriz[st.fil - 3][st.col] = terreno[15];
+		break;
+	}
+
 }
+
