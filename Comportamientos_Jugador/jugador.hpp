@@ -23,6 +23,8 @@ class ComportamientoJugador : public Comportamiento{
       last_action = actIDLE;
       girar_derecha = false;
       bien_situado = false;
+      bikini_puesto = false;
+      zapatillas_puestas = false;
      }
      
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
@@ -31,10 +33,13 @@ class ComportamientoJugador : public Comportamiento{
     Action think(Sensores sensores);
     int interact(Action accion, int valor);
 
+    void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
+							vector< vector< unsigned char> > &matriz);
+
   private:
   // Declarar aquí las variables de estado
   state current_state; Orientacion brujula;
   Action last_action;
-  bool girar_derecha, bien_situado;
+  bool girar_derecha, bien_situado, bikini_puesto, zapatillas_puestas;
 };
 #endif

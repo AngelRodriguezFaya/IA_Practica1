@@ -1,9 +1,13 @@
 #include "../Comportamientos_Jugador/jugador.hpp"
 #include <iostream>
+#include <vector>
+
 using namespace std;
 
 void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
 							vector< vector< unsigned char> > &matriz);
+
+void reiniciar();
 
 Action ComportamientoJugador::think(Sensores sensores)
 {	
@@ -11,9 +15,10 @@ Action ComportamientoJugador::think(Sensores sensores)
 	Action accion = actRUN;
 	int a;
 
-	// Actualización de las variables de estado
-	switch (last_action)
-	{
+	//-------------------Actualización de las variables de estado-------------------//
+
+	switch (last_action){
+
 	case actWALK:		// Actualización en caso de avanzar
 		switch (current_state.brujula)
 		{
@@ -44,13 +49,38 @@ Action ComportamientoJugador::think(Sensores sensores)
 		break;
 	}
 
-	// Si está en la casilla de posicionamiento, se actualizan el estado (la posición y la orientación).
+	// Si está en la casilla de posicionamiento, se actualizan el estado (la posición y 
+	// la orientación) y le indicamos que ya está bien situado.
 	if(sensores.terreno[0] == 'G' and !bien_situado){
 		current_state.fil = sensores.posF;
 		current_state.col = sensores.posC;
 		current_state.brujula = sensores.sentido;
 		bien_situado = true;
 	}
+
+	// Si está en la casilla del bikini y no lo lleva puesto, se lo pone.
+	if(sensores.terreno[0] == 'K' and !bikini_puesto){
+		bikini_puesto = true;
+	}
+
+	// Si está en la casilla de las zapatillas y no las lleva puestas, se las pone.
+	if(sensores.terreno[0] == 'D' and !zapatillas_puestas){
+		zapatillas_puestas = true;
+	}
+
+	// Si está en la casilla de precipio, sufre un reinicio.
+	if(sensores.terreno[0] == 'P'){
+		// reiniciar();
+		cout << "Reiniciando...\n";
+		current_state.fil = 99;
+    	current_state.col = 99;
+    	current_state.brujula = norte;
+    	girar_derecha = false;
+    	bien_situado = false;
+    	bikini_puesto = false;
+    	zapatillas_puestas = false;
+	}
+
 
 	if(bien_situado){ 
 		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
@@ -68,7 +98,8 @@ Action ComportamientoJugador::think(Sensores sensores)
 		girar_derecha = (rand()%2 == 0);
 	}
 
- 	// Mostrar el valor de los sensores
+	//-------------------Mostrar el valor de los sensores-------------------//
+
 	cout << "Posicion: fila " << sensores.posF << " columna " << sensores.posC;
 	switch (sensores.sentido)
 	{
@@ -269,3 +300,13 @@ void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st,
 
 }
 
+void reiniciar(){
+	cout << "Reiniciando...\n";
+	current_state.fil = 99;
+    current_state.col = 99;
+    current_state.brujula = norte;
+    ComportamientoJugador. = false;
+    bien_situado = false;
+    bikini_puesto = false;
+    zapatillas_puestas = false;
+}
