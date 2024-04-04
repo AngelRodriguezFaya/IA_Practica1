@@ -4,9 +4,6 @@
 
 using namespace std;
 
-void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
-							vector< vector< unsigned char> > &matriz);
-
 void reiniciar();
 
 Action ComportamientoJugador::think(Sensores sensores)
@@ -14,8 +11,9 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 	Action accion = actRUN;
 	int a;
-
+	//------------------------------------------------------------------------------//
 	//-------------------Actualización de las variables de estado-------------------//
+	//------------------------------------------------------------------------------//
 
 	switch (last_action){
 
@@ -38,13 +36,15 @@ Action ComportamientoJugador::think(Sensores sensores)
 	
 	case actTURN_SR:	// Actualización en caso de girar 45º a la derecha
 		a = current_state.brujula;
+		cout << "oyeeeeeeeeeeeeeeeeeeeeeeeee Giro 45º a la derecha\n";		// BORRRAAAAAAAAAAAAAAAAAAAR
 		a = (a + 1) % 8;
 		current_state.brujula = static_cast<Orientacion>(a);
 		break;
 	
 	case actTURN_L:	   // Actualización en caso de girar 90º a la izquierda
 		a = current_state.brujula;
-		a = (a - 6) % 8;	// Es equivalente a (a-2+8) % 8, pero % en C++ no trabaja con numeros negativos.
+		cout << "oyeeeeeeeeeeeeeeeeeeeeeeeeee Giro a la izquierda\n";		// BORRRAAAAAAAAAAAAAAAAAAAR
+		a = (a + 8 - 2) % 8;
 		current_state.brujula = static_cast<Orientacion>(a);
 		break;
 	}
@@ -81,14 +81,21 @@ Action ComportamientoJugador::think(Sensores sensores)
     	zapatillas_puestas = false;
 	}
 
-
 	if(bien_situado){ 
 		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
 	}
 
-	// Decidir la nueva accion
-	if( (sensores.terreno[2] == 'T' or sensores.terreno[2] == 'S' // Si puedo avanzar a la siguiente casilla
-		or sensores.terreno[2] == 'G') and sensores.agentes[2] == '_'){
+	//---------------------Decidir la nueva accion--------------------------//
+	if( (sensores.terreno[2] == 'T' 	// Suelo Arenoso
+		or sensores.terreno[2] == 'S' 	// Suelo Pedregoso
+		or sensores.terreno[2] == 'G' 	// Posicinamiento
+		or sensores.terreno[2] == 'B'	// Bosque
+		or sensores.terreno[2] == 'A'	// Agua
+		or sensores.terreno[2] == 'K'	// Bikini
+		or sensores.terreno[2] == 'D'	// Zapatillas
+		or sensores.terreno[2] == 'X'	// Recarga 
+		) and sensores.agentes[2] == '_'
+		  and !sensores.colision){
 			accion = actWALK;
 	} else if(!girar_derecha){	
 		accion = actTURN_L;
@@ -122,7 +129,17 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 	cout << "\nColision: " << sensores.colision;
 	cout << "  Reset: " << sensores.reset;
-	cout << "  Vida: " << sensores.vida << endl<< endl; 
+	cout << "  Vida: " << sensores.vida << endl<< endl; 		
+
+		//----------Mostrar el valor de las variables de estado-------------//
+	cout << "\n Bien situado: " << bien_situado;
+	cout << " current_state.fil: " << current_state.fil << endl;
+	cout << " current_state.col: " << current_state.col << endl;
+	cout << " current_state.brujula: " << current_state.brujula << endl;
+	cout << " Bikini puesto: " << bikini_puesto << endl;
+	cout << " Zapatillas puestas: " << zapatillas_puestas << endl;
+
+
 
 	// Recordar la ultima accion
 	last_action = accion;
@@ -136,8 +153,8 @@ int ComportamientoJugador::interact(Action accion, int valor)
 	return false;
 }
 
-void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
-						vector< vector< unsigned char> > &matriz){
+void ComportamientoJugador::PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, 
+			const state &st, vector< vector< unsigned char> > &matriz){
 	
 	// Según la orinetación del agente, se coloca el terreno en la matriz.
 	switch (st.brujula)
@@ -300,7 +317,7 @@ void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st,
 
 }
 
-void reiniciar(){
+/* void reiniciar(){
 	cout << "Reiniciando...\n";
 	current_state.fil = 99;
     current_state.col = 99;
@@ -309,4 +326,4 @@ void reiniciar(){
     bien_situado = false;
     bikini_puesto = false;
     zapatillas_puestas = false;
-}
+} */
