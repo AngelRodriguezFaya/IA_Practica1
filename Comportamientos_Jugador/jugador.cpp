@@ -9,8 +9,9 @@ void reiniciar();
 Action ComportamientoJugador::think(Sensores sensores)
 {	
 
-	Action accion = actRUN;
-	int a;
+	Action accion = actIDLE;
+	int a, i, ir_a_casilla, filaObjetivo, columnaObjetivo;
+
 	//------------------------------------------------------------------------------//
 	//-------------------Actualización de las variables de estado-------------------//
 	//------------------------------------------------------------------------------//
@@ -36,14 +37,12 @@ Action ComportamientoJugador::think(Sensores sensores)
 	
 	case actTURN_SR:	// Actualización en caso de girar 45º a la derecha
 		a = current_state.brujula;
-		cout << "oyeeeeeeeeeeeeeeeeeeeeeeeee Giro 45º a la derecha\n";		// BORRRAAAAAAAAAAAAAAAAAAAR
 		a = (a + 1) % 8;
 		current_state.brujula = static_cast<Orientacion>(a);
 		break;
 	
 	case actTURN_L:	   // Actualización en caso de girar 90º a la izquierda
 		a = current_state.brujula;
-		cout << "oyeeeeeeeeeeeeeeeeeeeeeeeeee Giro a la izquierda\n";		// BORRRAAAAAAAAAAAAAAAAAAAR
 		a = (a + 8 - 2) % 8;
 		current_state.brujula = static_cast<Orientacion>(a);
 		break;
@@ -81,22 +80,44 @@ Action ComportamientoJugador::think(Sensores sensores)
     	zapatillas_puestas = false;
 	}
 
-	if(bien_situado){ 
+	// Si está en la casilla de recargar, se recarga su bateria.
+	if(sensores.terreno[0] == 'X'){
+		RecargarPilas(sensores);
+	}
+
+	if(bien_situado && sensores.nivel == 1){ 
+		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
+	}else if (sensores.nivel == 0){
+		// Revisar esto...................................................
+		current_state.fil = sensores.posF;
+		current_state.col = sensores.posC;
+		current_state.brujula = sensores.sentido;
+		bien_situado = true;
 		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado);
 	}
 
-	//---------------------Decidir la nueva accion--------------------------//
-	if( (sensores.terreno[2] == 'T' 	// Suelo Arenoso
-		or sensores.terreno[2] == 'S' 	// Suelo Pedregoso
-		or sensores.terreno[2] == 'G' 	// Posicinamiento
-		or sensores.terreno[2] == 'B'	// Bosque
-		or sensores.terreno[2] == 'A'	// Agua
-		or sensores.terreno[2] == 'K'	// Bikini
-		or sensores.terreno[2] == 'D'	// Zapatillas
-		or sensores.terreno[2] == 'X'	// Recarga 
-		) and sensores.agentes[2] == '_'
-		  and !sensores.colision){
+	//Si necesita recargar la bateria/pilas
+	if(sensores.bateria < BATERIA_MAX){
+		necesita_recargar = true;
+	}else{
+		necesita_recargar = false;
+	}
+
+	//Si le quedan pocos instantes de vida
+	if(sensores.vida < 500){
+		queda_poca_vida = true;
+	}else{
+		queda_poca_vida = false;
+	}
+
+	//------------------------------------------------------------------------------//
+	//--------------------------Decidir la nueva accion-----------------------------//
+	//------------------------------------------------------------------------------//
+
+	if(SiguienteCasillaLibre(sensores)){	
 			accion = actWALK;
+	} else if (sensores.terreno[0] == 'X' && recargando_pilas){	// Si está en la casilla de recarga, no se mueve.
+		accion = actIDLE;
 	} else if(!girar_derecha){	
 		accion = actTURN_L;
 		girar_derecha = (rand()%2 == 0);
@@ -105,7 +126,92 @@ Action ComportamientoJugador::think(Sensores sensores)
 		girar_derecha = (rand()%2 == 0);
 	}
 
-	//-------------------Mostrar el valor de los sensores-------------------//
+	// // Orden: Posicionamiento(si necesita) > Recargar(si necesita) > Bikini(si no lleva) > Zapatillas(si no lleva) > Desconocida
+	// // Si no hay ninguna, puede entrar en función la matriz de instantes.
+	// i = 0;
+	// while (i < TAM_SENSORES_TERR_AGEN){
+	// 	if(sensores.terreno[i] == 'G' and !bien_situado){
+	// 		ir_a_casilla = i;
+	// 		break;
+	// 	}else if(sensores.terreno[i] == 'X' and necesita_recargar){
+	// 		ir_a_casilla = i;
+	// 		break;
+	// 	}else if(sensores.terreno[i] == 'K' and !bikini_puesto){
+	// 		ir_a_casilla = i;
+	// 		break;
+	// 	}else if(sensores.terreno[i] == 'D' and !zapatillas_puestas){
+	// 		ir_a_casilla = i;
+	// 		break;
+	// 	}else if(sensores.terreno[i] == '?'){
+	// 		ir_a_casilla = i;
+	// 		break;
+	// 	}
+	// 	i++;
+	// }
+	
+	// // Calcular la fila y columna de la celda objetivo
+	// filaObjetivo = current_state.fil;
+	// columnaObjetivo = current_state.col;
+
+	// switch (ir_a_casilla) {
+	// 	case 0: // Norte
+	// 		filaObjetivo--;
+	// 		break;
+	// 	case 1: // Noreste
+	// 		filaObjetivo--;
+	// 		columnaObjetivo++;
+	// 		break;
+	// 	case 2: // Este
+	// 		columnaObjetivo++;
+	// 		break;
+	// 	case 3: // Sureste
+	// 		filaObjetivo++;
+	// 		columnaObjetivo++;
+	// 		break;
+	// 	case 4: // Sur
+	// 		filaObjetivo++;
+	// 		break;
+	// 	case 5: // Suroeste
+	// 		filaObjetivo++;
+	// 		columnaObjetivo--;
+	// 		break;
+	// 	case 6: // Oeste
+	// 		columnaObjetivo--;
+	// 		break;
+	// 	case 7: // Noroeste
+	// 		filaObjetivo--;
+	// 		columnaObjetivo--;
+	// 		break;
+	// }
+
+	// // Moverse a la celda objetivo
+	// if (filaObjetivo != current_state.fil || columnaObjetivo != current_state.col) {
+	// 	if (sensores.terreno[ir_a_casilla] == 'M' || sensores.terreno[ir_a_casilla] == 'A' || sensores.terreno[ir_a_casilla] == 'L') {
+	// 		// Casilla intransitable, buscar otro camino
+	// 		// COMPLETAR ---------------------------<<<------------------------------------------------------------<<<
+	// 	} else {
+	// 		if (filaObjetivo < current_state.fil) {
+	// 			accion = actWALK;
+	// 		} else if (filaObjetivo > current_state.fil) {
+	// 			accion = actRUN;
+	// 		} else if (columnaObjetivo < current_state.col) {
+	// 			accion = actTURN_L;
+	// 		} else if (columnaObjetivo > current_state.col) {
+	// 			accion = actTURN_SR;
+	// 		}
+	// 	}
+	// } else {
+	// 	// Ya se encuentra en la celda objetivo
+	// 	accion = actIDLE;
+	// }
+
+	// // Si no hay ninguna de las anteriores, se elige una casilla según la matriz de instantes.
+	// // COMPLETAR ---------------------------<<<------------------------------------------------------------<<<
+
+
+	//------------------------------------------------------------------------------//
+	//----------------------Mostrar el valor de los sensores------------------------//
+	//------------------------------------------------------------------------------//
 
 	cout << "Posicion: fila " << sensores.posF << " columna " << sensores.posC;
 	switch (sensores.sentido)
@@ -131,14 +237,17 @@ Action ComportamientoJugador::think(Sensores sensores)
 	cout << "  Reset: " << sensores.reset;
 	cout << "  Vida: " << sensores.vida << endl<< endl; 		
 
-		//----------Mostrar el valor de las variables de estado-------------//
+	//------------------------------------------------------------------------------//
+	//----------------Mostrar el valor de las variables de estado-------------------//
+	//------------------------------------------------------------------------------//
+
 	cout << "\n Bien situado: " << bien_situado;
 	cout << " current_state.fil: " << current_state.fil << endl;
 	cout << " current_state.col: " << current_state.col << endl;
 	cout << " current_state.brujula: " << current_state.brujula << endl;
 	cout << " Bikini puesto: " << bikini_puesto << endl;
 	cout << " Zapatillas puestas: " << zapatillas_puestas << endl;
-
+	cout << " Recargando pilas: " << recargando_pilas << endl;
 
 
 	// Recordar la ultima accion
@@ -147,6 +256,10 @@ Action ComportamientoJugador::think(Sensores sensores)
 	return accion;
 	
 }
+
+	//------------------------------------------------------------------------------//
+	//------------------Implementación de métodos auxiliares------------------------//
+	//------------------------------------------------------------------------------//
 
 int ComportamientoJugador::interact(Action accion, int valor)
 {
@@ -316,6 +429,36 @@ void ComportamientoJugador::PonerTerrenoEnMatriz(const vector<unsigned char> &te
 	}
 
 }
+
+void ComportamientoJugador::RecargarPilas(Sensores& sensores){
+	if(sensores.terreno[0] == 'X' and necesita_recargar and queda_poca_vida){
+		recargando_pilas = true;
+		cout << "Recargando mi bateria... Dame un descanso\n";
+		sensores.bateria += 10;
+	}else
+		recargando_pilas = false;
+}
+
+bool ComportamientoJugador::SiguienteCasillaLibre(const Sensores &sensores){
+	bool siguiente_casilla_libre = false;
+	if( (sensores.terreno[2] == 'T' 	// Suelo Arenoso
+		or sensores.terreno[2] == 'S' 	// Suelo Pedregoso
+		or sensores.terreno[2] == 'G' 	// Posicinamiento
+		or sensores.terreno[2] == 'B'	// Bosque
+		or sensores.terreno[2] == 'A'	// Agua
+		or sensores.terreno[2] == 'K'	// Bikini
+		or sensores.terreno[2] == 'D'	// Zapatillas
+		or sensores.terreno[2] == 'X'	// Recarga
+		) and sensores.agentes[2] == '_'
+		  and !sensores.colision
+		  and !recargando_pilas){	// Si no esta recargando
+			siguiente_casilla_libre = true;
+	}
+
+	return siguiente_casilla_libre;
+		
+}
+
 
 /* void reiniciar(){
 	cout << "Reiniciando...\n";

@@ -25,6 +25,9 @@ class ComportamientoJugador : public Comportamiento{
       bien_situado = false;
       bikini_puesto = false;
       zapatillas_puestas = false;
+      recargando_pilas = false;
+      necesita_recargar = false;
+      queda_poca_vida = false;
      }
      
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
@@ -35,11 +38,23 @@ class ComportamientoJugador : public Comportamiento{
 
     void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
 							vector< vector< unsigned char> > &matriz);
+    
+    void RecargarPilas(Sensores& sensores);
+
+    bool SiguienteCasillaLibre(const Sensores &sensores);
 
   private:
+  const int BATERIA_MAX = 5000;
+  const int TAM_SENSORES_TERR_AGEN = 16;
   // Declarar aquí las variables de estado
   state current_state; Orientacion brujula;
   Action last_action;
-  bool girar_derecha, bien_situado, bikini_puesto, zapatillas_puestas;
+  bool girar_derecha,
+       bien_situado, 
+       bikini_puesto, 
+       zapatillas_puestas, 
+       recargando_pilas,
+       necesita_recargar,
+	     queda_poca_vida;
 };
 #endif
