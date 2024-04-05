@@ -28,6 +28,9 @@ class ComportamientoJugador : public Comportamiento{
       recargando_pilas = false;
       necesita_recargar = false;
       queda_poca_vida = false;
+      accion_pendiente = false;
+      
+      mapaAuxiliar = vector<vector<unsigned char>>(size, vector<unsigned char>(size, '?'));
      }
      
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
@@ -37,15 +40,33 @@ class ComportamientoJugador : public Comportamiento{
     int interact(Action accion, int valor);
 
     void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
-							vector< vector< unsigned char> > &matriz);
+							vector< vector< unsigned char> > &matriz, Sensores& sensores);
+    
+    void PonerTerrenoEnAuxiliar(const vector<unsigned char> &terreno, const state &st, 
+							vector< vector< unsigned char> > &matriz, Sensores& sensores);
+    
+    void PonerInstanteEnMatriz(const int& instante_actual, const state &st, 
+              vector< vector<int> > &matriz);
     
     void RecargarPilas(Sensores& sensores);
 
-    bool SiguienteCasillaLibre(const Sensores &sensores);
+    bool CasillaLibre(const Sensores &sensores, const int& num_casilla);
+
+    bool PuedoCorrer(const Sensores &sensores);
+
+    Action GiraRandomDerecha(const Sensores &sensores);
+
+    int CasillaAntigua(const Sensores &sensores, const vector< vector<int> >& matriz_instantes);
+
+    Action SiguienteAccion(const int& i);
+
+    int CasillaSinPintar(const int& i, const Sensores &sensores);
 
   private:
   const int BATERIA_MAX = 5000;
+  const int BATERIA_MIN = 1000;
   const int TAM_SENSORES_TERR_AGEN = 16;
+
   // Declarar aquí las variables de estado
   state current_state; Orientacion brujula;
   Action last_action;
@@ -55,6 +76,9 @@ class ComportamientoJugador : public Comportamiento{
        zapatillas_puestas, 
        recargando_pilas,
        necesita_recargar,
-	     queda_poca_vida;
+	     queda_poca_vida,
+       accion_pendiente;
+
+  vector< vector< unsigned char> > mapaAuxiliar;
 };
 #endif
