@@ -11,7 +11,6 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 	Action accion = actIDLE;
 	int a, i, ir_a_casilla;
-	bool atascado_der, atascado_izq;
 
 	//------------------------------------------------------------------------------//
 	//-------------------Actualización de las variables de estado-------------------//
@@ -99,14 +98,6 @@ Action ComportamientoJugador::think(Sensores sensores)
 	// REINICIO (CASILLA DE LOBO O PRECIPICIO)
 	if(sensores.agentes[0] == 'l' or sensores.terreno[0] == 'P'){
 		cout << "Reiniciando...\n";
-		current_state.fil = 99;
-    	current_state.col = 99;
-    	current_state.brujula = norte;
-    	girar_derecha = false;
-    	bien_situado = false;
-    	bikini_puesto = false;
-    	zapatillas_puestas = false;
-		recargando_pilas = false;
 	}
 
 	// CASILLA DE RECARGA
@@ -128,13 +119,41 @@ Action ComportamientoJugador::think(Sensores sensores)
 		queda_poca_vida = false;
 	}
 
-	// SI HA TENIDO UN REINICIO BLOQUEANTE
-	if(sensores.reset and !casillaLibre(sensores, 2) and !casillaNoTransitable(sensores, 2)){
-		reinicio_bloqueante = true;
-	} else if(reinicio_bloqueante and casillaLibre(sensores, 2)){
-		reinicio_bloqueante = false;
+	// SI HA SIDO REINICIADO
+	if(sensores.reset){
+		current_state.fil = 99;
+    	current_state.col = 99;
+    	current_state.brujula = norte;
+    	girar_derecha = false;
+    	bien_situado = false;
+    	bikini_puesto = false;
+    	zapatillas_puestas = false;
+		recargando_pilas = false;
 	}
 
+	// POOR SI EMPIEZA EN UNA SITUACIÓN DE BLOQUEO
+	if(sensores.vida > 2990 and casillaLibreEspecial(sensores, 2)){
+		accion = actWALK;
+	}else if (sensores.vida > 2990 and !casillaLibreEspecial(sensores, 2)){
+		accion = GiroRandom(sensores);
+	}
+
+	// SI HA TENIDO UN REINICIO BLOQUEANTE
+	if( reinicio_bloqueante and casillaLibreEspecial(sensores, 2) and iteraciones_desde_bloqueo < 10){
+		accion = actWALK;
+		iteraciones_desde_bloqueo++;
+	} 
+	// Si no esta disponible la casilla, giramos
+	else if(reinicio_bloqueante and casillaLibreEspecial(sensores, 2) and iteraciones_desde_bloqueo < 10){
+		accion = GiroRandom(sensores);
+		iteraciones_desde_bloqueo++;
+	}
+
+	if(iteraciones_desde_bloqueo >= 10){
+		reinicio_bloqueante = false;
+		iteraciones_desde_bloqueo = 0;
+	}
+	
 
 	// PINTAR EL MAPA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -143,7 +162,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 	{
 		pintaBordes(tamanio_mapa, mapaResultado);
 	}
-	
+
 		// SEGUIR PINTANDO EL MAPA SEGÚN EL NIVEL DEL JUEGO
 	if( bien_situado && (sensores.nivel == 1 or sensores.nivel == 2 or sensores.nivel == 3)){ 
 		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado, sensores);
@@ -251,7 +270,11 @@ Action ComportamientoJugador::think(Sensores sensores)
 	else if(reinicio_bloqueante){	// Si el agente ha sido reiniciado
 		accion = salirDelPaso(sensores);
 	}
-	
+
+	else if(sensores.agentes[2] == 'l'){	// Si el agente se encuentra con un lobo
+		accion = GiroRandom(sensores);
+	}
+		
 	else{
 		accion = actIDLE;
 	}
@@ -529,6 +552,29 @@ bool ComportamientoJugador::casillaLibre(const Sensores &sensores, const int& nu
 	return casilla_libre;
 }
 
+
+bool ComportamientoJugador::casillaLibreEspecial(const Sensores &sensores, const int& num_casilla){
+	bool casilla_libre = false;
+	if( (sensores.terreno[num_casilla] == 'T' 							// Suelo Arenoso
+		or sensores.terreno[num_casilla] == 'S' 						// Suelo Pedregoso
+		or sensores.terreno[num_casilla] == 'G' 						// Posicinamiento
+		or sensores.terreno[num_casilla] == 'B'							// Bosque aunque sin ZAPATILLAS
+		or sensores.terreno[num_casilla] == 'A'	 						// Agua aunque sin BIKINI
+		or sensores.terreno[num_casilla] == 'K'							// Bikini
+		or sensores.terreno[num_casilla] == 'D'							// Zapatillas
+		or sensores.terreno[num_casilla] == 'X'							// Recarga
+		) and sensores.agentes[num_casilla] == '_'						// No hay agente
+		  and sensores.terreno[num_casilla] != 'l'						// No es un lobo
+		  and sensores.terreno[num_casilla] != 'a'						// No es un aldeano
+		  and sensores.terreno[num_casilla] != 'P'						// No es un precipicio
+		  and sensores.terreno[num_casilla] != 'M')						// No es un muro
+	{	
+		casilla_libre = true;
+	}
+
+	return casilla_libre;
+}
+
 Action ComportamientoJugador::GiroRandom(const Sensores& sensores){
 	Action accion;
 	if(!girar_derecha){	
@@ -621,8 +667,7 @@ void ComportamientoJugador::reinicio(){
 Action ComportamientoJugador::salirDelPaso(const Sensores& sensores){
 	Action siguiente = actIDLE;
 	if(reinicio_bloqueante){ // Si acaba de ser reinicado y estoy en una casilla no transitable
-		if(!casillaLibre(sensores, 2) and !esMuro(sensores, 2) and !esPrecipicio(sensores, 2)){
-			// Si no es una casilla Libre, pero si es Transitable(no es un muro ni un precipicio ...)
+		if(casillaLibreEspecial(sensores, 2)){
 			siguiente = actWALK;
 		}else{
 			siguiente = GiroRandom(sensores);

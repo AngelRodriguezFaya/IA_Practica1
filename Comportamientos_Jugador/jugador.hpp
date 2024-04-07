@@ -32,6 +32,7 @@ class ComportamientoJugador : public Comportamiento{
       last_rule = 0,
       reinicio_bloqueante = false,
       tamanio_mapa = size;
+      iteraciones_desde_bloqueo = 0;
     }
      
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
@@ -67,10 +68,12 @@ class ComportamientoJugador : public Comportamiento{
 
     void pintaBordes(const int& n, vector< vector< unsigned char> > &mapa);
 
+    bool casillaLibreEspecial(const Sensores &sensores, const int& num_casilla);
+
 
   private:
-  const int BATERIA_MAX_CARGA = 4000;
-  const int BATERIA_MIN = 2000;
+  const int BATERIA_MAX_CARGA = 5000;
+  const int BATERIA_MIN = 4000;
   const int TAM_SENSORES_TERR_AGEN = 16;
 
   // Declarar aquí las variables de estado
@@ -86,7 +89,7 @@ class ComportamientoJugador : public Comportamiento{
 	     queda_poca_vida,
        accion_pendiente,
        reinicio_bloqueante;
-  int last_rule, tamanio_mapa;
+  int last_rule, tamanio_mapa,iteraciones_desde_bloqueo;
 
 };
 #endif
