@@ -29,9 +29,10 @@ class ComportamientoJugador : public Comportamiento{
       necesita_recargar = false;
       queda_poca_vida = false;
       accion_pendiente = false;
-      
-      mapaAuxiliar = vector<vector<unsigned char>>(size, vector<unsigned char>(size, '?'));
-     }
+      last_rule = 0,
+      reinicio_bloqueante = false,
+      tamanio_mapa = size;
+    }
      
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
     ~ComportamientoJugador(){}
@@ -42,34 +43,40 @@ class ComportamientoJugador : public Comportamiento{
     void PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, const state &st, 
 							vector< vector< unsigned char> > &matriz, Sensores& sensores);
     
-    void PonerTerrenoEnAuxiliar(const vector<unsigned char> &terreno, const state &st, 
-							vector< vector< unsigned char> > &matriz, Sensores& sensores);
-    
-    void PonerInstanteEnMatriz(const int& instante_actual, const state &st, 
-              vector< vector<int> > &matriz);
-    
     void RecargarPilas(Sensores& sensores);
 
-    bool CasillaLibre(const Sensores &sensores, const int& num_casilla);
+    bool casillaLibre(const Sensores &sensores, const int& num_casilla);
 
-    bool PuedoCorrer(const Sensores &sensores);
+    Action GiroRandom(const Sensores &sensores);
 
-    Action GiraRandomDerecha(const Sensores &sensores);
+    Action SiguienteAccion(const Sensores &sensores, const int& i);
 
-    int CasillaAntigua(const Sensores &sensores, const vector< vector<int> >& matriz_instantes);
+    bool esMuro(const Sensores &sensores, const int& num_casilla);
 
-    Action SiguienteAccion(const int& i);
+    bool esPrecipicio(const Sensores &sensores, const int& num_casilla);
 
-    int CasillaSinPintar(const int& i, const Sensores &sensores);
+    bool casillaNoTransitable(const Sensores& sensores, const int& num_casilla);
+
+    Orientacion orientacionActual(const Sensores &sensores, const state& st);
+
+    void reinicio();
+
+    void Posicionar (const Sensores &sensores, bool &bien_situado);
+
+    Action salirDelPaso(const Sensores &sensores);
+
+    void pintaBordes(const int& n, vector< vector< unsigned char> > &mapa);
+
 
   private:
-  const int BATERIA_MAX = 5000;
-  const int BATERIA_MIN = 1000;
+  const int BATERIA_MAX_CARGA = 4000;
+  const int BATERIA_MIN = 2000;
   const int TAM_SENSORES_TERR_AGEN = 16;
 
   // Declarar aquí las variables de estado
+  
   state current_state; Orientacion brujula;
-  Action last_action;
+  Action last_action;;
   bool girar_derecha,
        bien_situado, 
        bikini_puesto, 
@@ -77,8 +84,9 @@ class ComportamientoJugador : public Comportamiento{
        recargando_pilas,
        necesita_recargar,
 	     queda_poca_vida,
-       accion_pendiente;
+       accion_pendiente,
+       reinicio_bloqueante;
+  int last_rule, tamanio_mapa;
 
-  vector< vector< unsigned char> > mapaAuxiliar;
 };
 #endif
