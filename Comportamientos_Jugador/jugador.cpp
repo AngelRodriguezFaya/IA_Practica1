@@ -1,3 +1,15 @@
+/**
+ * @file jugador.cpp
+ * @author Angel Rodriguez Faya
+ * @date 07-04-2024
+ * 
+ * INTELIGENCIA ARTIFICIAL : PRÁCTICA 1 AGENTES REACTIVOS
+ * 2º CURSO DE INGENIERÍA INFORMÁTICA
+ * UNIVERSIDAD DE GRANADA
+ * 
+ * @brief Fichero de implementación de la clase ComportamientoJugador.
+*/
+
 #include "../Comportamientos_Jugador/jugador.hpp"
 #include <iostream>
 #include <vector>
@@ -102,7 +114,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 	// CASILLA DE RECARGA
 	if(sensores.terreno[0] == 'X'){
-		RecargarPilas(sensores);
+		recargarPilas(sensores);
 	}
 
 	// SI NECESITA RECARGAR BATERIA
@@ -135,27 +147,27 @@ Action ComportamientoJugador::think(Sensores sensores)
 	if(sensores.vida > 2990 and casillaLibreEspecial(sensores, 2)){
 		accion = actWALK;
 	}else if (sensores.vida > 2990 and !casillaLibreEspecial(sensores, 2)){
-		accion = GiroRandom(sensores);
+		accion = giroRandom(sensores);
 	}
 
 	// SI HA TENIDO UN REINICIO BLOQUEANTE
-	if( reinicio_bloqueante and casillaLibreEspecial(sensores, 2) and iteraciones_desde_bloqueo < 10){
+	if( reinicio_bloqueante and casillaLibreEspecial(sensores, 2) and iteraciones_desde_reinicio < 10){
 		accion = actWALK;
-		iteraciones_desde_bloqueo++;
+		iteraciones_desde_reinicio++;
 	} 
 	// Si no esta disponible la casilla, giramos
-	else if(reinicio_bloqueante and casillaLibreEspecial(sensores, 2) and iteraciones_desde_bloqueo < 10){
-		accion = GiroRandom(sensores);
-		iteraciones_desde_bloqueo++;
+	else if(reinicio_bloqueante and casillaLibreEspecial(sensores, 2) and iteraciones_desde_reinicio < 10){
+		accion = giroRandom(sensores);
+		iteraciones_desde_reinicio++;
 	}
 
-	if(iteraciones_desde_bloqueo >= 10){
+	if(iteraciones_desde_reinicio >= 10){
 		reinicio_bloqueante = false;
-		iteraciones_desde_bloqueo = 0;
+		iteraciones_desde_reinicio = 0;
 	}
 	
 
-	// PINTAR EL MAPA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	// >>>>>>>>>>>>>>>>>>>>>>  PINTAR EL MAPA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 		// INICIALIZAR MAPA PINTANDO LOS BORDES
 	if(sensores.vida == 2999) // PRIMERA ITERACIÓN
@@ -165,22 +177,18 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 		// SEGUIR PINTANDO EL MAPA SEGÚN EL NIVEL DEL JUEGO
 	if( bien_situado && (sensores.nivel == 1 or sensores.nivel == 2 or sensores.nivel == 3)){ 
-		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado, sensores);
+		ponerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado, sensores);
 	}else if (sensores.nivel == 0){
 		current_state.fil = sensores.posF;
 		current_state.col = sensores.posC;
 		current_state.brujula = sensores.sentido;
-		PonerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado, sensores);
+		ponerTerrenoEnMatriz(sensores.terreno, current_state, mapaResultado, sensores);
 	}
 
 	//------------------------------------------------------------------------------//
 	//--------------------------Decidir la nueva accion-----------------------------//
 	//------------------------------------------------------------------------------//
 
-	// Definir reglas para los comportamientos de acercarse a una casilla específica que le indiquemos 
-	// y para los casos especiales, como estar atrapado 
-	
-	
 	if(!recargando_pilas){
 		// Recorremos el sensor de terreno
 		i = -1;
@@ -189,29 +197,29 @@ Action ComportamientoJugador::think(Sensores sensores)
         	// Si el agente necesita posicionarse y encuentra la casilla 'G'
         	if (!bien_situado && sensores.terreno[i] == 'G') {
 				cout << "Voy a la casilla G\n";
-            	accion = SiguienteAccion(sensores, i);
+            	accion = siguienteAccion(sensores, i);
 				ir_a_casilla = i;
 				break;
         	}
         	// Si el agente necesita recargar y encuentra la casilla 'X'
         	else if (necesita_recargar && sensores.terreno[i] == 'X') {
             	cout << "Voy a la casilla X\n";
-            	accion = SiguienteAccion(sensores, i);
-				RecargarPilas(sensores);
+            	accion = siguienteAccion(sensores, i);
+				recargarPilas(sensores);
 				ir_a_casilla = i;
 				break;
         	}
         	// Si el agente no tiene el bikini y encuentra la casilla 'K'
         	else if (!bikini_puesto && sensores.terreno[i] == 'K') {
 				cout << "Voy a la casilla K\n";
-            	accion = SiguienteAccion(sensores, i);
+            	accion = siguienteAccion(sensores, i);
 				ir_a_casilla = i;
 				break;
         	}
         	// Si el agente no tiene las zapatillas y encuentra la casilla 'D'
         	else if (!zapatillas_puestas && sensores.terreno[i] == 'D') {
             	cout << "Voy a la casilla D\n";
-            	accion = SiguienteAccion(sensores, i);
+            	accion = siguienteAccion(sensores, i);
 				ir_a_casilla = i;
 				break;
         	}
@@ -257,12 +265,12 @@ Action ComportamientoJugador::think(Sensores sensores)
 			last_rule = 5;
 		}
 
-    	// Si no se ha definido ninguna acción específica, el agente avanza si puede
+    	// Si no se ha definido ninguna acción específica, el agente avanza (si puede)
     	if (accion == actIDLE){
 			if(casillaLibre(sensores, 2)) {
         		accion = actWALK;  
 			}else{
-				accion = GiroRandom(sensores);
+				accion = giroRandom(sensores);
     		}
 		}
 	}
@@ -272,7 +280,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 	}
 
 	else if(sensores.agentes[2] == 'l'){	// Si el agente se encuentra con un lobo
-		accion = GiroRandom(sensores);
+		accion = giroRandom(sensores);
 	}
 		
 	else{
@@ -338,7 +346,7 @@ int ComportamientoJugador::interact(Action accion, int valor){
 	return false;
 }
 
-void ComportamientoJugador::PonerTerrenoEnMatriz(const vector<unsigned char> &terreno, 
+void ComportamientoJugador::ponerTerrenoEnMatriz(const vector<unsigned char> &terreno, 
 			const state &st, vector< vector< unsigned char> > &matriz, Sensores& sensores){
 	
 	// Según la orinetación del agente, se coloca el terreno en la matriz.
@@ -519,7 +527,7 @@ void ComportamientoJugador::PonerTerrenoEnMatriz(const vector<unsigned char> &te
 
 }
 
-void ComportamientoJugador::RecargarPilas(Sensores& sensores){
+void ComportamientoJugador::recargarPilas(Sensores& sensores){
 	if(sensores.terreno[0] == 'X' and necesita_recargar and !queda_poca_vida 
 		and sensores.bateria < BATERIA_MAX_CARGA){
 		recargando_pilas = true;
@@ -575,7 +583,7 @@ bool ComportamientoJugador::casillaLibreEspecial(const Sensores &sensores, const
 	return casilla_libre;
 }
 
-Action ComportamientoJugador::GiroRandom(const Sensores& sensores){
+Action ComportamientoJugador::giroRandom(const Sensores& sensores){
 	Action accion;
 	if(!girar_derecha){	
 		accion = actTURN_L;
@@ -588,7 +596,7 @@ Action ComportamientoJugador::GiroRandom(const Sensores& sensores){
 	return accion;
 }
 
-Action ComportamientoJugador::SiguienteAccion(const Sensores &sensores, const int& i){
+Action ComportamientoJugador::siguienteAccion(const Sensores &sensores, const int& i){
     if(casillaLibre(sensores, i)){
 		if (i == 2 || i == 6 || i == 12) {
         	return actWALK;  
@@ -653,24 +661,13 @@ Orientacion ComportamientoJugador::orientacionActual(const Sensores &sensores, c
 	return orientacion_actual;
 }
 
-
-void ComportamientoJugador::reinicio(){
-	current_state.fil = 99;
-	current_state.col = 99;
-	current_state.brujula = norte;
-	girar_derecha = false;
-	bien_situado = false;
-	bikini_puesto = false;
-	zapatillas_puestas = false;
-}
-
 Action ComportamientoJugador::salirDelPaso(const Sensores& sensores){
 	Action siguiente = actIDLE;
 	if(reinicio_bloqueante){ // Si acaba de ser reinicado y estoy en una casilla no transitable
 		if(casillaLibreEspecial(sensores, 2)){
 			siguiente = actWALK;
 		}else{
-			siguiente = GiroRandom(sensores);
+			siguiente = giroRandom(sensores);
 		}
 	}
 	return siguiente;
